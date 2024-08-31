@@ -173,7 +173,7 @@ agent = DQNAgent(env.state_size, env.action_size)
 #agent.train(env, episodes=10)
 
 # Save the trained model
-agent.model.save("dqn_model.h5")
+agent.model.save("dqn_model.keras")
 # Print Metrics
 print(f"RRT Path Length: {rrt_path_length}")
 print(f"DWA Optimized Path Length: {dwa_path_length}")

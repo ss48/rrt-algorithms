@@ -41,26 +41,51 @@ class SearchSpace:
         z_min = z_min  # Lower z-bound
         z_max = z_max  # Upper z-bound
         return (x_min, y_min, z_min, x_max, y_max, z_max)
+        
+    def is_point_in_obstacle(self, point, obstacle):
+    
+#    Check if a point is inside an obstacle.
+ #   :param point: The point (x, y, z).
+  #  :param obstacle: The obstacle defined as (x_center, y_center, z_min, z_max, radius).
+   # :param drone_radius: The radius of the drone.
+    #:return: True if the point is inside the obstacle, False otherwise.
+    
+        x_center, y_center, z_min, z_max, radius = obstacle
+        effective_radius = radius + self.drone_radius
 
+        # Check if the point is within the cylindrical obstacle's radius in the xy-plane
+        dist_xy = np.linalg.norm(np.array(point[:2]) - np.array([x_center, y_center]))
+
+        # Check if the point is within the z bounds of the obstacle
+        within_z_bounds = z_min <= point[2] <= z_max
+
+        # The point is inside the obstacle if it's within the effective radius and within the z bounds
+        return dist_xy <= effective_radius and within_z_bounds
+
+        
     def obstacle_free(self, point):
-        # Quick check using BVH and AABB
+        # Ensure that point has at least three elements for x, y, z
+        if len(point) < 3:
+            raise ValueError(f"Point {point} is incorrectly formatted, expected at least 3 elements for (x, y, z).")
+        
+        # Extract spatial coordinates
+        point = point[:3]
+
         nearby_obstacles = list(self.bvh.intersection((point[0], point[1], point[2], point[0], point[1], point[2])))
         for obs_idx in nearby_obstacles:
             if self.is_point_in_obstacle(point, self.obstacles[obs_idx]):
                 return False
         return True
 
-    def is_point_in_obstacle(self, point, obstacle):
-        # Detailed check if the point is inside the actual obstacle
-        x_center, y_center, z_min, z_max, radius = obstacle
-        radius += self.drone_radius  # Expand the obstacle's radius by the drone's radius
-        dist = np.linalg.norm(np.array(point[:2]) - np.array([x_center, y_center]))
-        return dist <= radius and z_min <= point[2] <= z_max
-
     def collision_free(self, start, end, r):
-        # Check the line segment using the BVH
-        start = start[:5]
-        end = end[:5]
+        # Ensure that start and end have at least three elements for x, y, z
+        if len(start) < 3 or len(end) < 3:
+            raise ValueError(f"Start {start} or end {end} point is incorrectly formatted, expected at least 3 elements for (x, y, z).")
+        
+        # Extract spatial coordinates
+        start = start[:3]
+        end = end[:3]
+
         direction = np.array(end) - np.array(start)
         length = np.linalg.norm(direction)
         direction = direction / length
@@ -70,6 +95,7 @@ class SearchSpace:
             if not self.obstacle_free(point):
                 return False
         return True
+
 
     def build_obs_index(self):
         # Create an R-tree index for obstacles
@@ -88,18 +114,6 @@ class SearchSpace:
         :return: A tuple representing a random location within the search space.
         """
         return tuple(np.random.uniform(low, high) for low, high in self.dimension_lengths)
-    def collision_free(self, start, end, r):
-        direction = np.array(end) - np.array(start)
-        length = np.linalg.norm(direction)
-        direction = direction / length
-        steps = int(length / r)
-        for i in range(steps + 1):
-            point = np.array(start) + i * r * direction
-            if not self.obstacle_free(point):
-                return False
-        return True
-
-
 
 
 
@@ -121,11 +135,12 @@ class SearchSpace:
 
 
     def sample_free(self):
-        """
-        Sample a random location within the search space that is free from obstacles.
-        :return: A tuple representing a random location within the search space that is obstacle-free.
-        """
         while True:
             point = self.sample()
-            if self.obstacle_free(point):
-                return point
+        # Ensure that the sampled point is correctly formatted before checking if it's obstacle-free
+            if isinstance(point, (list, tuple, np.ndarray)) and len(point) >= 3:
+                if self.obstacle_free(point):
+                    return point
+            else:
+                raise ValueError(f"Sampled point {point} is incorrectly formatted.")
+

@@ -42,14 +42,8 @@ Assign resolution of edges:
 
 ### Examples
 Visualization examples can be found for rrt and rrt* in both 2 and 3 dimensions.
-- [2D RRT](https://plot.ly/~szanlongo/79/plot/)
+
 - [3D RRT](https://plot.ly/~szanlongo/81/plot/)
-- [2D RRT*](https://plot.ly/~szanlongo/83/plot/)
-- [3D RRT*](https://plot.ly/~szanlongo/89/plot/)
-- [2D Bidirectional RRT*](https://plot.ly/~szanlongo/85/plot/)
-- [3D Bidirectional RRT*](https://plot.ly/~szanlongo/87/plot/)
-- [2D Heuristic Bidirectional RRT*](https://plot.ly/~szanlongo/91/plot/)
-- [3D Heuristic Bidirectional RRT*](https://plot.ly/~szanlongo/93/plot/)
 
 ## Contributing
 

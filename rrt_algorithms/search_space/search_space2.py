@@ -143,4 +143,3 @@ class SearchSpace:
                     return point
             else:
                 raise ValueError(f"Sampled point {point} is incorrectly formatted.")
-

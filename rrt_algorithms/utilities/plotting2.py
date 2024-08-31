@@ -3,7 +3,7 @@ import plotly as py
 from plotly import graph_objs as go
 import numpy as np
 
-colors = ['darkblue', 'teal']
+colors = ['lightblue', 'teal']
 
 class Plot(object):
     def __init__(self, filename):

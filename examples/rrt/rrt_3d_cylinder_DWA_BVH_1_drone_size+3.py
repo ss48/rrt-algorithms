@@ -279,6 +279,12 @@ if path is not None:
     done = False
     optimized_path = []
 agent = DQNAgent(env.state_size, env.action_size)
+
+
+
+
+
+
 while not done:
     action = agent.act(state)
     next_state, _, done = env.step(action)
@@ -289,6 +295,11 @@ while not done:
     # Save the trained model
     agent.model.save("dqn_model.keras")
     print("DQN model saved as dqn_model.keras")
+    
+    
+
+    
+    
     # Print Metrics
     print(f"RRT Path Length: {rrt_path_length}")
     print(f"DWA Optimized Path Length: {dwa_path_length}")
@@ -302,17 +313,70 @@ while not done:
     print(f"RRT Path Energy Usage: {rrt_energy}")
     print(f"DWA Optimized Path Energy Usage: {dwa_energy}")
     print(f"ALNS Optimized Path Energy Usage: {alns_energy}")
+    
 
-    # Plotting
-    plot = Plot("rrt_dwa_alns_3d")
-    plot.plot_tree(X, rrt.trees)
-    plot.plot_path(X, path, color='red')  # Plot the original RRT path in red
-    plot.plot_path(X, optimized_path, color='blue')  # Plot the DWA optimized path in blue
-    plot.plot_path(X, alns_optimized_path, color='green')  # Plot the ALNS optimized path in green
-    plot.plot_obstacles(X, all_obstacles)
-    plot.plot_start(X, x_init)
-    plot.plot_goal(X, x_intermediate, color="pink")
-    plot.plot_goal(X, x_second_goal, color="blue")
-    plot.plot_goal(X, x_final_goal, color="green")
-    plot.draw(auto_open=True)
+def inspect_and_print_path(path):
+    """
+    Inspects and prints the structure of the path for debugging.
+    """
+    for idx, point in enumerate(path):
+        print(f"Point {idx} in path: {point} (Type: {type(point)})")
+        if isinstance(point, (list, tuple)):
+            for sub_idx, sub_point in enumerate(point):
+                print(f"  Sub-point {sub_idx}: {sub_point} (Type: {type(sub_point)})")
+def inspect_path(path, path_name):
+    if path is None or len(path) == 0:
+        print(f"{path_name} is empty or None.")
+    else:
+        print(f"{path_name} contains {len(path)} points. Sample points: {path[:5]}")
 
+# Inspect paths
+inspect_path(path1, "RRT Path 1")
+inspect_path(path2, "RRT Path 2")
+inspect_path(path3, "RRT Path 3")
+inspect_path(optimized_path, "DWA Optimized Path")
+inspect_path(alns_optimized_path, "ALNS Optimized Path")
+
+def flatten_path_points(path):
+    """
+    Flattens any nested numpy arrays in the path and ensures that each point is a list or tuple with at least three elements.
+    Returns a cleaned and flattened path.
+    """
+    cleaned_path = []
+    for idx, point in enumerate(path):
+        if isinstance(point, np.ndarray):
+            # Flatten the array and convert to a list
+            flat_point = point.flatten().tolist()
+            if len(flat_point) >= 3:
+                cleaned_path.append(flat_point[:3])  # Take only the first three elements (x, y, z)
+            else:
+                raise ValueError(f"Point {idx} in optimized_path is incorrectly formatted: {flat_point}")
+        else:
+            raise ValueError(f"Point {idx} in optimized_path is not a list or tuple: {point}")
+    return cleaned_path
+
+# Apply the flattening function to optimized_path before plotting
+try:
+    optimized_path = flatten_path_points(optimized_path)
+except ValueError as e:
+    print(f"Error encountered during flattening: {e}")
+
+
+# Debug the flattened path points
+for idx, point in enumerate(optimized_path):
+   print(f"Point {idx} in optimized_path after flattening: {point}")
+
+# Plotting
+plot = Plot("rrt_dwa_alns_3d")
+
+# Your existing plotting code follows
+plot.plot_tree(X, rrt.trees)
+plot.plot_path(X, path, color='red')  # Plot the original RRT path in red
+plot.plot_path(X, optimized_path, color='blue')  # Plot the DWA optimized path in blue
+plot.plot_path(X, alns_optimized_path, color='green')  # Plot the ALNS optimized path in green
+plot.plot_obstacles(X, all_obstacles)  # Now this line should work
+plot.plot_start(X, x_init)
+plot.plot_goal(X, x_intermediate, color="pink")
+plot.plot_goal(X, x_second_goal, color="blue")
+plot.plot_goal(X, x_final_goal, color="green")
+plot.draw(auto_open=True)

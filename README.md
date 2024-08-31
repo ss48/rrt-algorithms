@@ -1,10 +1,15 @@
+## Requirements
+pip install scikit-fuzzy 
+
+pip install --upgrade numpy 
+
+pip install tensorflow keras gym 
+
+pip install tensorflow or pip install tensorflow==2.10.0 
 # rrt
-Collection of rrt-based algorithms that scale to n-dimensions:
+Collection of rrt-based algorithms in 3-dimensions:
 - rrt
-- rrt* (rrt-star)
-- rrt* (bidirectional)
-- rrt* (bidriectional, lazy shortening)
-- rrt connect
+
 
 Utilizes [R-trees](https://en.wikipedia.org/wiki/R-tree) to improve performance by avoiding point-wise collision-checking and distance-checking.
 

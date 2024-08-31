@@ -16,7 +16,7 @@ from rrt_algorithms.dwa_algorithm.DWA3 import DWA, FuzzyController
 from rrt_algorithms.dqn_algorithm.DQN import DQNAgent
 from rrt_algorithms.dqn_algorithm.DQN import DroneEnv
 from rrt_algorithms.utilities.obstacle_generation2 import generate_random_cylindrical_obstacles 
-
+from tensorflow.keras.models import load_model
 
 # Define the search space dimensions
 X_dimensions = np.array([(0, 100), (0, 100), (0, 100)])

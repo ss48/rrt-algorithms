@@ -271,21 +271,21 @@ if path is not None:
     alns_energy = compute_energy_usage(alns_optimized_path, average_velocity)
     # Training the DQN
     env = DroneEnv(X, x_init, x_final_goal, all_obstacles, dwa_params)
-    env.train(episodes=50)
+    env.train(episodes=10)
     # After training, use the learned policy in your DWA
   
     # Initialize the DroneEnv environment for path optimization
     state = env.reset()
     done = False
     optimized_path = []
-
+agent = DQNAgent(env.state_size, env.action_size)
 while not done:
     action = agent.act(state)
     next_state, _, done = env.step(action)
     optimized_path.append(next_state)
     state = next_state
     # Save the trained DQN model
-    agent = DQNAgent(env.state_size, env.action_size)
+    #agent = DQNAgent(env.state_size, env.action_size)
     # Save the trained model
     agent.model.save("dqn_model.keras")
     print("DQN model saved as dqn_model.keras")

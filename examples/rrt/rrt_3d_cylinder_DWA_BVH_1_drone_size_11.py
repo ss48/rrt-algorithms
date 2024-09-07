@@ -259,7 +259,7 @@ path1 = try_rrt_to_goal(X, q, x_init, x_intermediate, max_samples, r, prc, all_o
 rrt_time = time.time() - start_time
 
 if path1 is not None:
-    adjust_speed_to_reach_goal(path1, specified_time_intermediate, dwa_params,"intermediate goal")  # Adjust speed for the intermediate goal
+    adjust_speed_to_reach_goal(path1, specified_time_intermediate, dwa_params,"Intermediate Goal", ax) # Adjust speed for the intermediate goal
     
     print("RRT to second intermediate goal...")
     path2 = try_rrt_to_goal(X, q, x_intermediate, x_second_goal, max_samples, r, prc, all_obstacles)
@@ -423,6 +423,63 @@ try:
 except ValueError as e:
     print(f"Error encountered during flattening: {e}")
 
+
+
+# Time calculation function
+def calculate_time_to_goal(path_length, speed):
+    """Calculate the time it takes to reach the goal given the path length and speed."""
+    if speed <= 0:
+        raise ValueError("Speed must be positive to calculate time.")
+    return path_length / speed
+
+# Function to print time to reach the goal for each method
+def print_time_to_goal(label, path_length, speed):
+    time_to_goal = calculate_time_to_goal(path_length, speed)
+    print(f"{label} Time to Goal: {time_to_goal:.2f} seconds")
+    return time_to_goal
+
+# Now include the time calculation and improvement comparison
+if path is not None:
+    rrt_path_length = path_length(path)
+    dwa_path_length = path_length(optimized_path)
+    alns_path_length = path_length(alns_optimized_path)
+
+    # Assuming max speed for each method (adjusted by algorithms)
+    rrt_speed = dwa_params['max_speed']  # RRT typically uses the DWA's max speed
+    dwa_speed = dwa_params['max_speed']
+    alns_speed = dwa_params['max_speed']
+    
+    # Machine learning (ML) path speed
+    ml_speed = dwa_params['max_speed']  # Assuming ML also uses DWA's speed for comparison
+    
+    # Print and calculate the time for each algorithm
+    rrt_time = print_time_to_goal("RRT", rrt_path_length, rrt_speed)
+    dwa_time = print_time_to_goal("DWA Optimized", dwa_path_length, dwa_speed)
+    alns_time = print_time_to_goal("ALNS Optimized", alns_path_length, alns_speed)
+    
+    # If ML path is valid, calculate its time to goal
+    if ml_path.size > 0:
+        ml_path_length = path_length(ml_path)
+        ml_time = print_time_to_goal("Machine Learning Optimized", ml_path_length, ml_speed)
+    else:
+        ml_time = None
+        print("ML path is not valid for time calculation.")
+    
+    # Improvement analysis
+    print("\n--- Improvement Analysis ---")
+    if ml_time is not None:
+        improvement_from_rrt = rrt_time - ml_time
+        improvement_from_dwa = dwa_time - ml_time
+        improvement_from_alns = alns_time - ml_time
+        
+        print(f"Improvement from RRT: {improvement_from_rrt:.2f} seconds")
+        print(f"Improvement from DWA: {improvement_from_dwa:.2f} seconds")
+        print(f"Improvement from ALNS: {improvement_from_alns:.2f} seconds")
+    else:
+        print("ML time improvement calculation skipped due to invalid ML path.")
+
+# The rest of the code (plotting, animation) remains the same as before.
+
 # Plotting and Animation
 
 # First figure: RRT, DWA, ALNS paths with ML path
@@ -471,84 +528,7 @@ ani = animation.FuncAnimation(
 # Add legend and show the figure
 ax.legend()
 plt.show()
-# Plot static obstacles
-for obs in all_obstacles:
-    x_center, y_center, z_min, z_max, radius = obs
-    u = np.linspace(0, 2 * np.pi, 100)
-    v = np.linspace(z_min, z_max, 100)
-    x = radius * np.outer(np.cos(u), np.ones(len(v))) + x_center
-    y = radius * np.outer(np.sin(u), np.ones(len(v))) + y_center
-    z = np.outer(np.ones(len(u)), v)
-    ax.plot_surface(x, y, z, color='gray', alpha=0.3)
 
-print("RRT to first intermediate goal...")
-path1 = try_rrt_to_goal(X, 500, x_init, x_intermediate, 4024, 1, 0.1, all_obstacles)
 
-if path1 is not None:
-    adjust_speed_to_reach_goal(path1, specified_time_intermediate, dwa_params, "Intermediate Goal", ax)
-    ax.plot(*zip(*path1), linestyle='--', color='red', label="RRT to Intermediate")
 
-    print("RRT to second intermediate goal...")
-    path2 = try_rrt_to_goal(X, 500, x_intermediate, x_second_goal, 4024, 1, 0.1, all_obstacles)
-
-    if path2 is not None:
-        adjust_speed_to_reach_goal(path2, specified_time_second, dwa_params, "Second Goal", ax)
-        ax.plot(*zip(*path2), linestyle='--', color='blue', label="RRT to Second Goal")
-
-        print("RRT to final goal...")
-        path3 = try_rrt_to_goal(X, 500, x_second_goal, x_final_goal, 4024, 1, 0.1, all_obstacles)
-
-        if path3 is not None:
-            adjust_speed_to_reach_goal(path3, specified_time_final, dwa_params, "Final Goal", ax)
-            ax.plot(*zip(*path3), linestyle='--', color='green', label="RRT to Final Goal")
-        else:
-            print("Failed to reach the final goal.")
-    else:
-        print("Failed to reach the second goal.")
-else:
-    print("Failed to reach the intermediate goal.")
-
-# Apply DWA for local optimization along the RRT path
-if path1 is not None and path2 is not None and path3 is not None:
-    dwa = DWA(dwa_params)
-    optimized_path = []
-
-    for i in range(len(path1) - 1):
-        start_point = path1[i] + (0.0, 0.0)
-        end_point = path1[i + 1]
-        local_path = dwa.plan(start_point, end_point, X, all_obstacles)
-        optimized_path.extend(local_path)
-
-    # Adjust speed for the DWA optimized path
-    adjust_speed_to_reach_goal(optimized_path, specified_time_final, dwa_params, "DWA Optimized Path", ax)
-    ax.plot(*zip(*optimized_path), linestyle='--', color='cyan', label="DWA Optimized Path")
-
-# Training the DQN
-env = DroneEnv(X, x_init, x_final_goal, all_obstacles, dwa_params)
-env.train(episodes=10)
-
-# Initialize the DroneEnv environment for path optimization
-state = env.reset()
-done = False
-ml_path = []
-agent = DQNAgent(env.state_size, env.action_size)
-
-while not done:
-    action = agent.act(state)
-    next_state, _, done = env.step(action)
-    ml_path.append(next_state)
-    state = next_state
-
-# Convert ml_path to a numpy array
-ml_path = np.array(ml_path)
-
-# Check if ml_path has valid data
-if ml_path.size == 0:
-    print("ML path is empty. Ensure the DQN agent is working correctly.")
-else:
-    ax.plot(*ml_path.T, color='black', label="ML Path")
-    ax.legend()
-
-# Show the plot
-plt.show()
 

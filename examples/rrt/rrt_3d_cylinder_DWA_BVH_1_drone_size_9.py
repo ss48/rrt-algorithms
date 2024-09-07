@@ -320,7 +320,7 @@ alns_energy = compute_energy_usage(alns_optimized_path, average_velocity)
 
 # Training the DQN
 env = DroneEnv(X, x_init, x_final_goal, all_obstacles, dwa_params)
-env.train(episodes=30)
+env.train(episodes=50)
 # After training, use the learned policy in your DWA
 
 # Initialize the DroneEnv environment for path optimization

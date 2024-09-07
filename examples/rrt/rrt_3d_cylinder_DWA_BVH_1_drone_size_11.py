@@ -259,20 +259,21 @@ path1 = try_rrt_to_goal(X, q, x_init, x_intermediate, max_samples, r, prc, all_o
 rrt_time = time.time() - start_time
 
 if path1 is not None:
-    adjust_speed_to_reach_goal(path1, specified_time_intermediate, dwa_params,"Intermediate Goal", ax) # Adjust speed for the intermediate goal
+    adjust_speed_to_reach_goal(path1, specified_time_intermediate, dwa_params,"Intermediate Goal") # Adjust speed for the intermediate goal
     
     print("RRT to second intermediate goal...")
     path2 = try_rrt_to_goal(X, q, x_intermediate, x_second_goal, max_samples, r, prc, all_obstacles)
 
     if path2 is not None:
-        adjust_speed_to_reach_goal(path2, specified_time_second, dwa_params,"second goal")  # Adjust speed for the second goal
+        adjust_speed_to_reach_goal(path2, specified_time_second, dwa_params,"Second Goal")   # Adjust speed for the second goal
 
         print("RRT to final goal...")
         path3 = try_rrt_to_goal(X, q, x_second_goal, x_final_goal, max_samples, r, prc, all_obstacles)
 
         # Combine all paths
         if path3 is not None:
-            adjust_speed_to_reach_goal(path3, specified_time_final, dwa_params,"final goal")  # Adjust speed for the final goal
+            adjust_speed_to_reach_goal(path3, specified_time_final, dwa_params,"Final Goal")  
+            # Adjust speed for the final goal
             path = path1 + path2[1:] + path3[1:]
         else:
             path = path1 + path2[1:]
